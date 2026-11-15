@@ -572,6 +572,20 @@ android {
     checkDependencies = true
   }
 
+  buildTypes {
+    // CUSTOM_HOOK(unifiedpush-debug): minify debug builds too — the UnifiedPush
+    // connector (debug, unminified) references JVM-tink classes that tink-android
+    // lacks, crashing BaseApplication.onCreate with NoClassDefFoundError at startup.
+    // R8 strips the unreachable WebPush path the same way release builds do.
+    getByName("debug") {
+      isMinifyEnabled = true
+      proguardFiles(
+        getDefaultProguardFile("proguard-android-optimize.txt"),
+        "proguard-rules.pro"
+      )
+    }
+  }
+
   buildFeatures {
     buildConfig = true
     resValues = true
