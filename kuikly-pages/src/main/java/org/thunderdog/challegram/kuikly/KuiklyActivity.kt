@@ -155,6 +155,8 @@ class KuiklyActivity : Activity() {
     private const val KEY_PAGE_DATA = "pageData"
     private const val DEFAULT_PAGE = "kuikly_home"
 
+    @JvmStatic
+    @JvmOverloads
     fun start(context: Context, pageName: String = DEFAULT_PAGE, pageData: JSONObject = JSONObject()) {
       val starter = Intent(context, KuiklyActivity::class.java)
         .putExtra(KEY_PAGE_NAME, pageName)
