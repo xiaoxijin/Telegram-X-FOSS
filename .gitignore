@@ -20,3 +20,6 @@ obj
 /tests
 
 libc++_shared.so
+
+# Kuikly AI skills: locally cloned upstream reference repos (auto-managed, see .claude/skills/*/SKILL.md)
+.claude/skills/*/references/

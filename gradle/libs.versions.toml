@@ -4,6 +4,7 @@ android-gradle-plugin = "9.5.1"
 kotlin = "2.4.21"
 ksp = "2.3.13"
 desugaring = "2.1.5"
+kuikly = "2.4.2-2.0.21-ohos"
 
 jgit = "7.8.1.202611041320-r"
 
@@ -225,6 +226,12 @@ google-truth = { module = "com.google.truth:truth", version.ref = "google-truth"
 androidx-tracing-legacy = { module = "androidx.tracing:tracing-ktx", version.ref = "androidx-tracing-legacy" }
 androidx-tracing-lollipop = { module = "androidx.tracing:tracing-ktx", version.ref = "androidx-tracing-lollipop" }
 androidx-tracing-latest = { module = "androidx.tracing:tracing-ktx", version.ref = "androidx-tracing-latest" }
+
+# KuiklyUI (Tencent-TDS/KuiklyUI): cross-platform UI framework, HarmonyOS NEXT-ready pages.
+# Version scheme: <kuikly>-<kotlin-built-with>[-ohos]; keep aligned with docs/KUIKLY.md.
+kuikly-core = { module = "com.tencent.kuikly-open:core", version.ref = "kuikly" }
+kuikly-core-annotations = { module = "com.tencent.kuikly-open:core-annotations", version.ref = "kuikly" }
+kuikly-render-android = { module = "com.tencent.kuikly-open:core-render-android", version.ref = "kuikly" }
 
 [bundles]
 unit-test = ["junit", "google-truth"]

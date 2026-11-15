@@ -30,6 +30,8 @@ include(
   ":vkryl:leveldb",
   ":vkryl:core",
 
+  ":kuikly-pages",
+
   ":extension:bridge",
   ":extension:${extra["extension"]}",
 

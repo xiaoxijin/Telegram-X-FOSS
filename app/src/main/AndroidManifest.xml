@@ -327,6 +327,14 @@
       android:windowSoftInputMode="adjustPan"
       android:exported="true" />
 
+    <!-- Kuikly page host: adjustNothing keeps the Kuikly view stable while the keyboard animates,
+         the framework does keyboard avoidance itself via keyboardHeightChange events. -->
+    <activity
+      android:name=".kuikly.KuiklyActivity"
+      android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|locale|layoutDirection|uiMode"
+      android:windowSoftInputMode="stateUnspecified|adjustNothing"
+      android:exported="false" />
+
     <activity
       android:name=".MainActivity"
       android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|locale|layoutDirection|uiMode"
