@@ -93,8 +93,7 @@ jobs:
           yes | "${ANDROID_HOME}/cmdline-tools/bin/sdkmanager" --licenses --sdk_root="${ANDROID_HOME}"
           yes | "${ANDROID_HOME}/cmdline-tools/bin/sdkmanager" --install 'ndk;23.2.8568313' 'ndk;30.0.16248370' --sdk_root="${ANDROID_HOME}"
       - name: Install android-gcc-cross
-        if: github.event_name == 'push' || inputs.fast != true || (matrix.target == 'clang' && matrix.variant.name == 'Latest')
-        if: matrix.target == 'gcc'
+        if: matrix.target == 'gcc' && (github.event_name == 'push' || inputs.fast != true || (matrix.target == 'clang' && matrix.variant.name == 'Latest'))
         run: |
           declare -r PINO_TARBALL='/tmp/gcc.tar.xz'
           declare -r PINO_URL='https://github.com/AmanoTeam/android-gcc-cross/releases/latest/download/x86_64-unknown-linux-gnu.tar.xz'
@@ -109,8 +108,7 @@ jobs:
 
           /tmp/android-gcc-cross/bin/ndk-patch
       - name: Update gcc-wrapper
-        if: github.event_name == 'push' || inputs.fast != true || (matrix.target == 'clang' && matrix.variant.name == 'Latest')
-        if: matrix.target == 'gcc'
+        if: matrix.target == 'gcc' && (github.event_name == 'push' || inputs.fast != true || (matrix.target == 'clang' && matrix.variant.name == 'Latest'))
         run: |
           "${PINO_HOME}/bin/update-wrapper"
       - name: Build
