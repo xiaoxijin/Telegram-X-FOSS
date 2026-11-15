@@ -96,18 +96,27 @@ public final class SystemPermissionsHelper {
     return missing;
   }
 
-  /** Real-time states for the Kuikly permissions page: id -> granted, plus isMiui. */
+  /** Real-time states for the Kuikly permissions page: id -> granted, plus vendor. */
   public static String statesJson (Context context) {
     JSONObject json = new JSONObject();
     try {
-      json.put("isMiui", isMIUI(context));
+      boolean miui = isMIUI(context);
+      int vendor = DeviceVendors.vendor(context);
+      json.put("vendor", vendor);
+      json.put("isMiui", miui);
       json.put(String.valueOf(NOTIFICATIONS), notificationsAllowed(context));
-      json.put(String.valueOf(AUTO_START), !isMIUI(context) || XiaomiUtilities.isCustomPermissionGranted(context, XiaomiUtilities.OP_AUTO_START));
-      json.put(String.valueOf(BATTERY), batteryUnrestricted(context));
-      json.put(String.valueOf(LOCK_SCREEN), !isMIUI(context) || XiaomiUtilities.isCustomPermissionGranted(context, XiaomiUtilities.OP_SHOW_WHEN_LOCKED));
-      json.put(String.valueOf(BACKGROUND_POPUP), !isMIUI(context) || XiaomiUtilities.isCustomPermissionGranted(context, XiaomiUtilities.OP_BACKGROUND_START_ACTIVITY));
-      json.put(String.valueOf(OVERLAY), Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(context));
-      json.put(String.valueOf(FULL_SCREEN_NOTIFICATIONS), fullScreenNotificationsAllowed(context));
+      if (miui) {
+        json.put(String.valueOf(AUTO_START), XiaomiUtilities.isCustomPermissionGranted(context, XiaomiUtilities.OP_AUTO_START));
+        json.put(String.valueOf(BATTERY), batteryUnrestricted(context));
+        json.put(String.valueOf(LOCK_SCREEN), XiaomiUtilities.isCustomPermissionGranted(context, XiaomiUtilities.OP_SHOW_WHEN_LOCKED));
+        json.put(String.valueOf(BACKGROUND_POPUP), XiaomiUtilities.isCustomPermissionGranted(context, XiaomiUtilities.OP_BACKGROUND_START_ACTIVITY));
+      } else {
+        // other ROMs hide these behind vendor managers without readable state:
+        // the page shows "open settings" rows instead of true/false
+        json.put(String.valueOf(BATTERY), batteryUnrestricted(context));
+        json.put(String.valueOf(OVERLAY), Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(context));
+        json.put(String.valueOf(FULL_SCREEN_NOTIFICATIONS), fullScreenNotificationsAllowed(context));
+      }
     } catch (Exception ignored) { }
     return json.toString();
   }
@@ -133,26 +142,39 @@ public final class SystemPermissionsHelper {
     return xiaomiAppPermissions ? LOCK_SCREEN : id;
   }
 
-  /** System page routing, ported from the source fork (§E1: private MIUI routes included). */
+  /** System page routing (PORTING_FEATURES.md §E1): vendor private routes first, generic pages then. */
   public static Intent settingsIntent (Context context, int id) {
     String packageName = context.getPackageName();
     Uri app = Uri.parse("package:" + packageName);
     switch (settingsPage(context, id)) {
       case NOTIFICATIONS:
         return new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName);
-      case AUTO_START:
-        return new Intent("miui.intent.action.OP_AUTO_START").setPackage("com.miui.securitycenter");
-      case BATTERY:
-        return isMIUI(context)
-          ? new Intent("android.settings.VIEW_ADVANCED_POWER_USAGE_DETAIL", app)
-          : new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+      case AUTO_START: {
+        Intent vendorIntent = DeviceVendors.autostartIntent(context);
+        if (vendorIntent != null) {
+          return vendorIntent;
+        }
+        break; // fall through to the app details fallback below
+      }
+      case BATTERY: {
+        Intent vendorIntent = DeviceVendors.batteryIntent(context);
+        if (vendorIntent != null) {
+          return vendorIntent;
+        }
+        return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+      }
       case OVERLAY:
         return new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, app);
       case FULL_SCREEN_NOTIFICATIONS:
         return new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, app);
       default:
-        return XiaomiUtilities.getPermissionManagerIntent(context); // lock screen, pop-ups, overlay on MIUI
+        Intent editor = DeviceVendors.permissionEditorIntent(context);
+        if (editor != null) {
+          return editor; // lock screen, pop-ups, overlay on MIUI
+        }
+        break;
     }
+    return new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, app);
   }
 
   /** Opens a system page, falling back to the app details screen (source fork behavior). */

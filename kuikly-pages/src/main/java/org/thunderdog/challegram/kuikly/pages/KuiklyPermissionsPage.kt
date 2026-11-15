@@ -26,6 +26,8 @@ internal class KuiklyPermissionsPage : Pager() {
 
   private var isMiui by observable(false)
 
+  private var vendor by observable(0)
+
   private var notificationsGranted by observable(true)
   private var autoStartGranted by observable(true)
   private var batteryGranted by observable(true)
@@ -40,7 +42,8 @@ internal class KuiklyPermissionsPage : Pager() {
 
   private var rows: ObservableList<Row> by observableList()
 
-  class Row(val id: Int, val title: String)
+  /** @param hasState false for vendor-managed permissions the ROM does not expose a readable state for. */
+  class Row(val id: Int, val title: String, val hasState: Boolean = true)
 
   override fun created() {
     super.created()
@@ -57,6 +60,7 @@ internal class KuiklyPermissionsPage : Pager() {
     val module = acquireModule<SystemPermissionsModule>(SystemPermissionsModule.MODULE_NAME)
     val s = module.permissionStates()
     isMiui = s.optBoolean("isMiui", false)
+    vendor = s.optInt("vendor", 0)
     notificationsGranted = s.optBoolean("1", true)
     autoStartGranted = s.optBoolean("2", true)
     batteryGranted = s.optBoolean("3", true)
@@ -75,19 +79,43 @@ internal class KuiklyPermissionsPage : Pager() {
       }
     }
 
+    // §E1 per-vendor rows: MIUI/HyperOS exposes AppOps state; EMUI/OriginOS/ColorOS
+    // hide autostart & background-power behind vendor managers without a readable
+    // state — those rows link out instead of showing true/false.
     rows.clear()
-    // §E4 (commit 27bf780ba): background call permissions come first on MIUI/HyperOS —
-    // autostart and unrestricted battery are what keeps calls and pushes alive
-    if (isMiui) {
-      rows.add(Row(ID_AUTO_START, "自启动"))
-      rows.add(Row(ID_BATTERY, "电池不限"))
+    when {
+      isMiui || vendor == 1 -> {
+        rows.add(Row(ID_AUTO_START, "自启动"))
+        rows.add(Row(ID_BATTERY, "电池不限"))
+        rows.add(Row(ID_NOTIFICATIONS, "通知"))
+        rows.add(Row(ID_LOCK_SCREEN, "锁屏显示"))
+        rows.add(Row(ID_BACKGROUND_POPUP, "后台弹出"))
+        rows.add(Row(ID_OVERLAY, "悬浮窗"))
+      }
+      vendor == 2 -> { // Huawei EMUI / HarmonyOS 4.x (Android-compatible)
+        rows.add(Row(ID_AUTO_START, "自启动管理", hasState = false))
+        rows.add(Row(ID_BATTERY, "电池不限", hasState = false))
+        rows.add(Row(ID_NOTIFICATIONS, "通知"))
+        rows.add(Row(ID_OVERLAY, "悬浮窗"))
+      }
+      vendor == 3 -> { // vivo OriginOS / FuntouchOS
+        rows.add(Row(ID_AUTO_START, "自启动 / 后台弹窗", hasState = false))
+        rows.add(Row(ID_BATTERY, "后台高耗电", hasState = false))
+        rows.add(Row(ID_NOTIFICATIONS, "通知"))
+        rows.add(Row(ID_OVERLAY, "悬浮窗"))
+      }
+      vendor == 4 -> { // OPPO ColorOS (OPPO / OnePlus / realme)
+        rows.add(Row(ID_AUTO_START, "自启动管理", hasState = false))
+        rows.add(Row(ID_BATTERY, "电池不限"))
+        rows.add(Row(ID_NOTIFICATIONS, "通知"))
+        rows.add(Row(ID_OVERLAY, "悬浮窗"))
+      }
+      else -> {
+        rows.add(Row(ID_NOTIFICATIONS, "通知"))
+        rows.add(Row(ID_BATTERY, "电池不限"))
+        rows.add(Row(ID_OVERLAY, "悬浮窗"))
+      }
     }
-    rows.add(Row(ID_NOTIFICATIONS, "通知"))
-    if (isMiui) {
-      rows.add(Row(ID_LOCK_SCREEN, "锁屏显示"))
-      rows.add(Row(ID_BACKGROUND_POPUP, "后台弹出"))
-    }
-    rows.add(Row(ID_OVERLAY, "悬浮窗"))
   }
 
   private fun granted(id: Int): Boolean = when (id) {
@@ -250,9 +278,18 @@ internal class KuiklyPermissionsPage : Pager() {
             Text {
               attr {
                 marginRight(16f)
-                text(if (ctx.granted(row.id)) "已开启" else "未开启")
+                text(
+                  if (!row.hasState) "去设置"
+                  else if (ctx.granted(row.id)) "已开启" else "未开启"
+                )
                 fontSize(13f)
-                color(if (ctx.granted(row.id)) Color(0xFF34C759) else Color(0xFFFF3B30))
+                color(
+                  when {
+                    !row.hasState -> Color(0xFF8A8E95)
+                    ctx.granted(row.id) -> Color(0xFF34C759)
+                    else -> Color(0xFFFF3B30)
+                  }
+                )
               }
             }
           }
