@@ -11,6 +11,7 @@ package org.thunderdog.challegram.fork;
 import androidx.annotation.Nullable;
 
 import org.thunderdog.challegram.Log;
+import org.thunderdog.challegram.kuikly.XiaomiUtilities;
 import org.thunderdog.challegram.tool.UI;
 import org.telegram.polynet.Polynet;
 
@@ -39,6 +40,12 @@ public final class PolyNodeTransport {
 
   /** Starts (or reuses) the main instance. Returns the local SOCKS5 port, 0 on failure. */
   public static synchronized int start (String link) {
+    if (isEmulator()) {
+      // Go runtime (libgojni, arm64) executes illegal instructions under the
+      // x86_64 emulator's ARM translation (SIGILL in pool-N-thread); dev-only
+      // environment, so the core is simply not started there.
+      return 0;
+    }
     if (link.equals(activeLink) && activePort != 0) {
       return activePort;
     }
@@ -143,5 +150,10 @@ public final class PolyNodeTransport {
     } catch (Exception e) {
       return 0;
     }
+  }
+
+  private static boolean isEmulator () {
+    // definitive flag on every Android emulator image
+    return "1".equals(XiaomiUtilities.getSystemProperty("ro.kernel.qemu"));
   }
 }

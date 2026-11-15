@@ -180,11 +180,13 @@ public final class SystemPermissionsHelper {
   /** Opens a system page, falling back to the app details screen (source fork behavior). */
   public static void openSettings (Context context, int id) {
     try {
-      context.startActivity(settingsIntent(context, id));
+      // CUSTOM_HOOK(kuikly-module): the module context is the application context
+      // (background thread), so a NEW_TASK flag is required.
+      context.startActivity(settingsIntent(context, id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
     } catch (Exception e) {
       try {
         context.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-          Uri.parse("package:" + context.getPackageName())));
+          Uri.parse("package:" + context.getPackageName())).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
       } catch (Exception ignored) { }
     }
   }

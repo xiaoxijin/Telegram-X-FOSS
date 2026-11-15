@@ -1,6 +1,7 @@
 package org.thunderdog.challegram.kuikly
 
 import android.content.Context
+import android.util.Log
 import com.tencent.kuikly.core.render.android.export.KuiklyRenderBaseModule
 import org.thunderdog.challegram.kuikly.SystemPermissionsHelper
 import org.thunderdog.challegram.kuikly.module.SystemPermissionsModule
@@ -14,6 +15,7 @@ import org.thunderdog.challegram.kuikly.module.SystemPermissionsModule
 class KuiklySystemPermissionsModule (private val appContext: Context) : KuiklyRenderBaseModule() {
 
   override fun call (method: String, params: Any?, callback: ((Any?) -> Unit)?): Any? {
+    android.util.Log.i("KuiklySysPermModule", "call method=$method params=$params")
     when (method) {
       SystemPermissionsModule.METHOD_STATES -> {
         val json = SystemPermissionsHelper.statesJson(appContext)

@@ -5,6 +5,7 @@ import com.tencent.kuikly.core.base.Color
 import com.tencent.kuikly.core.base.ViewBuilder
 import com.tencent.kuikly.core.directives.vfor
 import com.tencent.kuikly.core.directives.vif
+import com.tencent.kuikly.core.module.Module
 import com.tencent.kuikly.core.pager.Pager
 import com.tencent.kuikly.core.reactive.collection.ObservableList
 import com.tencent.kuikly.core.reactive.handler.observable
@@ -44,6 +45,12 @@ internal class KuiklyPermissionsPage : Pager() {
 
   /** @param hasState false for vendor-managed permissions the ROM does not expose a readable state for. */
   class Row(val id: Int, val title: String, val hasState: Boolean = true)
+
+  override fun createExternalModules (): Map<String, Module>? {
+    // 宿主侧 KuiklySystemPermissionsModule（Android 实装）对应的 Kuikly 侧桥接模块；
+    // 不注册则 acquireModule 抛 PagerNotFoundException，页面 created() 中断。
+    return mapOf(SystemPermissionsModule.MODULE_NAME to SystemPermissionsModule())
+  }
 
   override fun created() {
     super.created()
