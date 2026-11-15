@@ -4,6 +4,32 @@ on:
   workflow_dispatch:
     branches:
         - '**'
+    inputs:
+      extension:
+        description: 'Extension variant (none / unifiedpush) — D1'
+        required: false
+        default: 'none'
+      custom_node_link:
+        description: 'Built-in proxy node link (vless://...) — A1/A2/A5/A6'
+        required: false
+        default: ''
+      custom_default_language:
+        description: 'Default language pack id (e.g. zh-hans) — B2/B3'
+        required: false
+        default: ''
+      custom_pro_link:
+        description: 'TG PRO membership link — C2'
+        required: false
+        default: ''
+      custom_ntfy_link:
+        description: 'ntfy install page link — D2'
+        required: false
+        default: ''
+      fast:
+        description: 'Only build clang Latest (device-testing builds)'
+        type: boolean
+        required: false
+        default: false
   push:
     branches:
         - '**'
@@ -14,6 +40,8 @@ jobs:
   build:
     name: Build (${{ matrix.target }}, ${{ matrix.variant.name }})
     runs-on: ubuntu-latest
+    # device-testing dispatches build only the clang Latest job; push runs the full matrix
+    if: github.event_name == 'push' || inputs.fast != true || (matrix.target == 'clang' && matrix.variant.name == 'Latest')
     strategy:
       fail-fast: false
       matrix:
@@ -84,6 +112,14 @@ jobs:
         run: |
           ./scripts/setup.sh --skip-sdk-setup
           ./scripts/setup-rust.sh
+          # distribution configuration under test (PORTING_FEATURES.md §4); empty = feature off
+          cat >> local.properties << EOF
+          tgx.extension=${{ github.event_name == 'workflow_dispatch' && inputs.extension || 'none' }}
+          custom.node_link=${{ github.event_name == 'workflow_dispatch' && inputs.custom_node_link || '' }}
+          custom.default_language=${{ github.event_name == 'workflow_dispatch' && inputs.custom_default_language || '' }}
+          custom.pro_link=${{ github.event_name == 'workflow_dispatch' && inputs.custom_pro_link || '' }}
+          custom.ntfy_link=${{ github.event_name == 'workflow_dispatch' && inputs.custom_ntfy_link || '' }}
+          EOF
           ./gradlew "${{ matrix.variant.task }}" ${{ matrix.variant.args }} -Pabi=all
       - name: Sign APKs
         run: |
