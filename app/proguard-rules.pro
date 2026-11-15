@@ -109,3 +109,8 @@
 }
 -dontwarn org.telegram.polynet.**
 -dontwarn go.**
+
+# CUSTOM_HOOK(unifiedpush): the connector's JVM 'tink' was excluded in favor of
+# tink-android (PORTING_FEATURES.md §D1); its unused WebPushHybridDecrypt helper
+# references the JVM-only tink class, which never runs in our flow.
+-dontwarn com.google.crypto.tink.**
