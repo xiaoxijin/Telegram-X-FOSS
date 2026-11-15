@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import com.tencent.kuikly.core.nvi.serialization.json.JSONObject
+import com.tencent.kuikly.core.render.android.IKuiklyRenderExport
 import com.tencent.kuikly.core.render.android.adapter.KuiklyRenderAdapterManager
 import com.tencent.kuikly.core.render.android.context.KuiklyRenderCoreExecuteModeBase
 import com.tencent.kuikly.core.render.android.exception.ErrorReason
@@ -88,6 +89,15 @@ class KuiklyActivity : Activity() {
       // JVM 模式：页面代码以 AAR 形式静态集成（本仓库的 kuikly-pages 模块）。
       override fun coreExecuteModeX(): KuiklyRenderCoreExecuteModeBase {
         return KuiklyRenderCoreExecuteModeBase.JVM
+      }
+
+      // 宿主扩展 Module：系统权限页（PORTING_FEATURES.md §E1/E2）等原生能力。
+      override fun registerExternalModule(kuiklyRenderExport: IKuiklyRenderExport) {
+        super.registerExternalModule(kuiklyRenderExport)
+        val appContext = applicationContext
+        kuiklyRenderExport.moduleExport(org.thunderdog.challegram.kuikly.module.SystemPermissionsModule.MODULE_NAME) {
+          KuiklySystemPermissionsModule(appContext)
+        }
       }
 
       override fun onPageLoadComplete(

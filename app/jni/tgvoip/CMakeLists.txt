@@ -39,6 +39,10 @@ set(TGCALLS_LIB "tgcallsjni")
 add_library(${TGCALLS_LIB} SHARED
   tgvoip.cpp
 
+  # CUSTOM_HOOK(call-proxy): routes the call engines' UDP through the built-in
+  # proxy's UDP relay (PORTING_FEATURES.md §A5); see PolyNodeTransport.
+  fork/call_proxy_socket_server.cc
+
   "${WEBRTC_DIR}/sdk/android/native_api/audio_device_module/audio_device_android.cc"
   "${WEBRTC_DIR}/sdk/android/native_api/base/init.cc"
   "${WEBRTC_DIR}/sdk/android/native_api/codecs/wrapper.cc"

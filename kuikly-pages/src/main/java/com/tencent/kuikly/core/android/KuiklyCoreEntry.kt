@@ -5,6 +5,7 @@ import com.tencent.kuikly.core.manager.BridgeManager
 import com.tencent.kuikly.core.nvi.NativeBridge
 import org.thunderdog.challegram.kuikly.pages.KuiklyAboutPage
 import org.thunderdog.challegram.kuikly.pages.KuiklyHomePage
+import org.thunderdog.challegram.kuikly.pages.KuiklyPermissionsPage
 import org.thunderdog.challegram.kuikly.pages.KuiklyProPage
 
 /**
@@ -61,5 +62,6 @@ class KuiklyCoreEntry : IKuiklyCoreEntry {
     BridgeManager.registerPageRouter("kuikly_home") { KuiklyHomePage() }
     BridgeManager.registerPageRouter("kuikly_about") { KuiklyAboutPage() }
     BridgeManager.registerPageRouter("kuikly_pro") { KuiklyProPage() }
+    BridgeManager.registerPageRouter("kuikly_permissions") { KuiklyPermissionsPage() }
   }
 }

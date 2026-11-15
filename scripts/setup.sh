@@ -30,6 +30,9 @@ patch-libsrtp-impl.sh
 # Patch rnnoise: namespace its vendored celt DSP symbols so they no longer collide with opus's (changed) signatures at link time
 patch-rnnoise-impl.sh
 
+# Patch webrtc: CUSTOM_HOOK(call-proxy) — wrap rtc::CreateDefaultSocketServer so call UDP can be relayed (§A5)
+patch-webrtc-impl.sh
+
 # Prebuild td: generate Java TDLib API sources (host build via TD_BUILD_JAVA)
 build-td-impl.sh
 

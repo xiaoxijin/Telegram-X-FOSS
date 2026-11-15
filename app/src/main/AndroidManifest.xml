@@ -139,6 +139,11 @@
     tools:targetApi="37"
     tools:ignore="RtlEnabled">
 
+    <!-- CUSTOM_HOOK(profileable): lets adb/simpleperf sample release builds (PORTING_FEATURES.md §G) -->
+    <profileable
+      android:shell="true"
+      tools:targetApi="29" />
+
     <service
       android:name=".service.NetworkListenerService"
       android:enabled="true"

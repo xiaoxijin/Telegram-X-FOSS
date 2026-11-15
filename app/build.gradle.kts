@@ -978,6 +978,8 @@ dependencies {
   implementation(files("libs/polynet.jar"))
   // Process-wide WebView proxy override for the built-in node (androidx.webkit ProxyController)
   implementation(libs.androidx.webkit)
+  // RemoteGreeting loopback command endpoint (PORTING_FEATURES.md §F1)
+  implementation(libs.nanohttpd)
   // AndroidX: https://developer.android.com/jetpack/androidx/versions
   flavorImplementation(
     libs.androidx.activity.legacy,

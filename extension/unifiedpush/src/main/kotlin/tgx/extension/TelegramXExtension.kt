@@ -1,13 +1,14 @@
 package tgx.extension
 
 import android.content.Context
+import android.content.Intent
 import org.unifiedpush.android.connector.UnifiedPush
 import org.thunderdog.challegram.fork.UnifiedPushEndpointStore
 import tgx.bridge.DeviceTokenRetriever
 import tgx.bridge.TokenRetrieverListener
 
 /**
- * UnifiedPush (ntfy) push channel, PORTING_FEATURES.md §D1.
+ * UnifiedPush (ntfy) push channel, PORTING_FEATURES.md §D1/D2.
  *
  * The endpoint is registered with Telegram as a wake-only "simple push"
  * (token_type 4). Every push is a bare ping: it wakes networking and the
@@ -15,11 +16,30 @@ import tgx.bridge.TokenRetrieverListener
  * the push server.
  */
 object TelegramXExtension : Extension("unifiedpush") {
+  private const val NTFY_PACKAGE = "io.heckel.ntfy"
+
   override fun createNewTokenRetriever(context: Context): DeviceTokenRetriever =
     UnifiedPushDeviceTokenRetriever
+
+  override fun isPushDistributorReady(context: Context): Boolean =
+    UnifiedPushEndpointStore.get() != null
+
+  override fun hasPushDistributor(context: Context): Boolean =
+    UnifiedPush.getDistributors(context).isNotEmpty()
+
+  override fun createDistributorLaunchIntent(context: Context): Intent? {
+    val ntfy = context.packageManager.getLaunchIntentForPackage(NTFY_PACKAGE)
+    if (ntfy != null) {
+      return ntfy
+    }
+    // fall back to whatever distributor is set as default, if any
+    val distributor = UnifiedPush.getDistributors(context).firstOrNull()
+      ?: UnifiedPush.getDefaultDistributor(context)
+    return distributor?.let { context.packageManager.getLaunchIntentForPackage(it) }
+  }
 }
 
-class UnifiedPushDeviceTokenRetriever : DeviceTokenRetriever("unifiedpush") {
+object UnifiedPushDeviceTokenRetriever : DeviceTokenRetriever("unifiedpush") {
   override fun isAvailable(context: Context): Boolean =
     UnifiedPush.getDistributors(context).isNotEmpty()
 
@@ -39,12 +59,10 @@ class UnifiedPushDeviceTokenRetriever : DeviceTokenRetriever("unifiedpush") {
       }
       // registering on every attempt makes the distributor re-send the endpoint,
       // which then arrives in UnifiedPushService and goes to all accounts
-      UnifiedPush.register(context, INSTANCE, null, null)
+      UnifiedPush.register(context, UnifiedPushDeviceTokenRetriever.INSTANCE, null, null)
       listener.onTokenRetrievalError("UNIFIEDPUSH_ENDPOINT_PENDING", null)
     }
   }
 
-  companion object {
-    const val INSTANCE = "default"
-  }
+  const val INSTANCE = "default"
 }

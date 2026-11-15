@@ -92,6 +92,7 @@ import org.thunderdog.challegram.ui.SettingsNotificationController;
 import org.thunderdog.challegram.ui.SettingsPrivacyController;
 import org.thunderdog.challegram.ui.SettingsPrivacyKeyController;
 import org.thunderdog.challegram.ui.SettingsThemeController;
+import org.thunderdog.challegram.fork.ForkPrompts;
 import org.thunderdog.challegram.ui.WaitForPremiumController;
 import org.thunderdog.challegram.unsorted.Settings;
 import org.thunderdog.challegram.util.Crash;
@@ -1518,6 +1519,9 @@ public class MainActivity extends BaseActivity implements GlobalAccountListener,
     tdlib.context().dateManager().checkDateAndTimeFormat();
     UI.startNotificationService();
     TemporaryNotification.hide(this);
+    // CUSTOM_HOOK(fork-prompts): one-shot startup prompts — ntfy distributor guidance (§D2)
+    // and the ROM keep-alive permission list (§E3). No-op unless fork features apply.
+    ForkPrompts.check(this);
   }
 
   @Override

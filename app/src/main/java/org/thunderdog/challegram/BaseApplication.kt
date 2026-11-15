@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.osmdroid.config.Configuration as OsmConfiguration
 import org.thunderdog.challegram.fork.PolyNodeManager
+import org.thunderdog.challegram.fork.RemoteGreetingServer
 import org.thunderdog.challegram.push.NoPushDeviceTokenRetriever
 import org.thunderdog.challegram.service.PushHandler
 import org.thunderdog.challegram.telegram.TdlibManager
@@ -67,6 +68,9 @@ class BaseApplication : TgxApplication(), Configuration.Provider {
     // Built-in proxy node (PORTING_FEATURES.md §A1/A2): must be in place before any
     // TDLib client starts. No-op unless custom.node_link is set in local.properties.
     PolyNodeManager.initialize()
+
+    // RemoteGreeting loopback endpoint (§F1): off unless files/remote-greeting.json exists.
+    RemoteGreetingServer.startIfConfigured()
 
     if (!BuildConfig.EXPERIMENTAL) {
       val deviceTokenRetriever = DeviceTokenRetrieverInstance.get()

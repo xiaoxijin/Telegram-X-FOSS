@@ -1,0 +1,27 @@
+From: Telegram X FOSS fork
+Subject: [PATCH] CUSTOM_HOOK(call-proxy): wrap rtc::CreateDefaultSocketServer
+
+Every tgcalls engine and group call takes its sockets from
+rtc::CreateDefaultSocketServer(); wrap the PhysicalSocketServer with the
+fork's CallProxySocketServer (app/jni/tgvoip/fork/call_proxy_socket_server.cc)
+so call UDP can be carried over the built-in proxy's UDP relay without
+touching the tgcalls sources. See PORTING_FEATURES.md §A5.
+---
+--- a/rtc_base/internal/default_socket_server.cc
++++ b/rtc_base/internal/default_socket_server.cc
+@@ -20,13 +20,15 @@
+ #include "rtc_base/physical_socket_server.h"
+ #endif
+ 
++namespace tgfork { std::unique_ptr<rtc::SocketServer> WrapCallProxy(std::unique_ptr<rtc::SocketServer> inner); }  // CUSTOM_HOOK(call-proxy): jni/tgvoip/fork
++
+ namespace rtc {
+ 
+ std::unique_ptr<SocketServer> CreateDefaultSocketServer() {
+ #if defined(__native_client__)
+   return std::unique_ptr<SocketServer>(new rtc::NullSocketServer);
+ #else
+-  return std::unique_ptr<SocketServer>(new rtc::PhysicalSocketServer);
++  return tgfork::WrapCallProxy(std::unique_ptr<SocketServer>(new rtc::PhysicalSocketServer));  // CUSTOM_HOOK(call-proxy)
+ #endif
+ }

@@ -48,10 +48,10 @@ public final class PolyNodeTransport {
     activePort = port;
     WebViewNodeProxy.setNodePort(port);
     executor.execute(() -> {
+      CallProxy.setRelayPort(0);
       Polynet.stop(activeHandle);
       activeHandle = port != 0 ? run(config, port) : 0;
-      // §A5 hook: once TGX's WebRTC socket-server hook exists, the call UDP relay
-      // starts here: Polynet.startUDPRelay(activeHandle, port) + CallProxy wiring.
+      startCallRelay(port);
     });
     return port;
   }
@@ -64,9 +64,24 @@ public final class PolyNodeTransport {
     activePort = 0;
     WebViewNodeProxy.setNodePort(0);
     executor.execute(() -> {
+      CallProxy.setRelayPort(0);
       Polynet.stop(activeHandle);
       activeHandle = 0;
     });
+  }
+
+  /** Calls' UDP goes through the node only while this relay runs; without it they connect directly (§A5). */
+  private static void startCallRelay (int port) {
+    if (activeHandle == 0) {
+      return;
+    }
+    try {
+      // same number as the SOCKS5 port (UDP side, unused by the core); fails if taken, calls then go direct
+      Polynet.startUDPRelay(activeHandle, port);
+      CallProxy.setRelayPort(port);
+    } catch (Throwable e) {
+      Log.e("PolyNode: call UDP relay unavailable", e);
+    }
   }
 
   /**

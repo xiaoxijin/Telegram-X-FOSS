@@ -1589,6 +1589,24 @@
   <string name="TweakSettings">Interface</string>
   <string name="KuiklyUIDemo">Kuikly UI (experimental)</string>
   <string name="KuiklyProMembership">TG PRO membership</string>
+  <!-- Fork startup prompts (PORTING_FEATURES.md §D2/§E3) -->
+  <string name="ForkPushTitle">Enable push notifications</string>
+  <string name="ForkPushInstallInfo">Push notifications need the ntfy app (a UnifiedPush distributor). Install it to keep receiving messages when this app is closed.</string>
+  <string name="ForkPushOpenInfo">ntfy is installed but hasn\'t connected yet. Open it once so it can register this app for push notifications.</string>
+  <string name="ForkPushInstall">Install ntfy</string>
+  <string name="ForkPushOpen">Open ntfy</string>
+  <string name="ForkNeverRemind">Don\'t remind me again</string>
+  <string name="ForkPermTitle">Background permissions</string>
+  <string name="ForkPermText">To keep receiving messages and calls while this app is closed, please allow the following:</string>
+  <string name="ForkPermOpen">Open settings</string>
+  <string name="ForkPermLockScreenReset">Note: on HyperOS, every system or app update can turn \"Show on lock screen\" back off — re-check this page if a call doesn\'t wake the screen.</string>
+  <string name="ForkPermNotifications">Notifications</string>
+  <string name="ForkPermAutoStart">Autostart</string>
+  <string name="ForkPermBattery">Unrestricted battery</string>
+  <string name="ForkPermLockScreen">Show on lock screen</string>
+  <string name="ForkPermBackgroundPopup">Display pop-up windows while running in the background</string>
+  <string name="ForkPermOverlay">Display over other apps</string>
+  <string name="ForkPermFullScreen">Full-screen notifications</string>
   <string name="ThemeClassic">Classic</string>
   <string name="ThemeBlue">Blue</string>
   <string name="ThemeNight">Night Black</string>
