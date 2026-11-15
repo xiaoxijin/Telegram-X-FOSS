@@ -50,3 +50,26 @@ rerun the script after upgrading the Go core.
 - E4's call-stack fixes beyond the permission surface are not ported.
 - The webrtc patch must be re-applied after every webrtc submodule update
   (`scripts/setup.sh` does it automatically).
+
+## Vendor adaptation matrix (§E per-ROM surface)
+
+| Vendor | Detect | Autostart | Battery / background | Lock-screen & pop-ups | State readout |
+|---|---|---|---|---|---|
+| Xiaomi MIUI / HyperOS | `ro.miui.ui.version.name` / `ro.mi.os.version.name` | `miui.intent.action.OP_AUTO_START` (AppOps 10008) | `VIEW_ADVANCED_POWER_USAGE_DETAIL` | MIUI permission editor (AppOps 10020/10021) | ✅ live AppOps state |
+| Huawei EMUI / HarmonyOS 4.x (Android-compatible) | `ro.build.version.emui` / `ro.build.version.harmonyos` / systemmanager resolvable | `com.huawei.systemmanager` startupmgr (candidates list) | systemmanager power pages | not exposed | ⛔ link-out only ("去设置") |
+| vivo OriginOS / FuntouchOS | `ro.vivo.os.name` / `ro.vivo.os.build.display.id` | `com.vivo.permissionmanager` BgStartUpManager (candidates) | `com.vivo.abe` background power (candidates) | not exposed | ⛔ link-out only |
+| OPPO ColorOS / OnePlus / realme | `ro.build.version.opporom` / `realmerom` | `com.coloros.safecenter` StartupAppList (candidates) | coloros power pages (candidates) | not exposed | ⛔ link-out only |
+| Other | — | generic Android settings | `IGNORE_BATTERY_OPTIMIZATION_SETTINGS` | generic | ✅ for the generic checks |
+
+Routing is candidate-list based (`DeviceVendors.firstResolvable`): ROM releases shuffle
+packages/activities, so the first resolvable candidate wins and the app details screen
+is the last resort. `missingPermissions` only reports checks with a readable state, so
+startup prompts never nag falsely on non-Xiaomi ROMs.
+
+**Huawei has two lines** (see also `docs/KUIKLY.md`):
+1. **EMUI / HarmonyOS 4.x and below** (Android APK installs) — covered by the
+   Android-level vendor routing above; push via UnifiedPush/ntfy, keep-alive through
+   the systemmanager pages.
+2. **HarmonyOS NEXT** (no Android APK support) — the Kuikly pages compile to a native
+   ArkUI host via `core-render-ohos` (see docs/KUIKLY.md §华为兼容路径); the
+   SystemPermissionsModule gains an ArkTS implementation there.
