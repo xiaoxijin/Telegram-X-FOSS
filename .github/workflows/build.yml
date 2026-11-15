@@ -136,8 +136,7 @@ jobs:
             "${APKSIGNER}" verify "${apk}"
           done
       - name: Create logs
-        if: github.event_name == 'push' || inputs.fast != true || (matrix.target == 'clang' && matrix.variant.name == 'Latest')
-        if: always()
+        if: always() && (github.event_name == 'push' || inputs.fast != true || (matrix.target == 'clang' && matrix.variant.name == 'Latest'))
         run: |
           tar --create --file=- '/var/tmp/obggcc' | xz --threads='0' --compress -9 > '/tmp/logs.tar.xz'
       - name: Upload logs
