@@ -81,7 +81,11 @@ public class PushProcessor {
 
     final int accountId = determineAccountId(pushId, payload, sentTime);
     if (accountId == TdlibAccount.NO_ID && (StringUtils.isEmpty(payload) || payload.equals("{}") || payload.equals("{\"badge\":\"0\"}"))) {
-      TDLib.Tag.notifications(pushId, accountId, "Empty payload: %s. Quitting task.", payload);
+      // CUSTOM_HOOK(push-wake): wake-only pings (UnifiedPush simple push, token_type 4) carry
+      // no payload; the point is to start the TDLib clients so they pull the updates over
+      // MTProto themselves (PORTING_FEATURES.md §D1).
+      TDLib.Tag.notifications(pushId, accountId, "Empty payload: %s. Waking accounts.", payload);
+      TdlibManager.instance().runWithWakeLock(manager -> { });
     } else {
       TdlibManager.instanceForAccountId(accountId).runWithWakeLock(manager -> processPush(manager, pushId, payload, accountId));
     }

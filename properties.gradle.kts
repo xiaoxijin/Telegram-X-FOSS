@@ -40,7 +40,7 @@ fun resolveGradleProperty(name: String): String? {
 }
 
 val extension = resolveGradleProperty("tgx.extension") ?: "none"
-if (extension != "none") {
+if (extension != "none" && extension != "unifiedpush") {
   error("Unknown extension: ${extension}")
 }
 extra["extension"] = extension

@@ -1588,6 +1588,7 @@
   <string name="Tweaks">Interface Options</string>
   <string name="TweakSettings">Interface</string>
   <string name="KuiklyUIDemo">Kuikly UI (experimental)</string>
+  <string name="KuiklyProMembership">TG PRO membership</string>
   <string name="ThemeClassic">Classic</string>
   <string name="ThemeBlue">Blue</string>
   <string name="ThemeNight">Night Black</string>

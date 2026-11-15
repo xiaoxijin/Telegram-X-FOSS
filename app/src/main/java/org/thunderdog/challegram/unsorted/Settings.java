@@ -1365,6 +1365,14 @@ public class Settings {
   private long makeDefaultNewSettings () {
     long settings = 0;
 
+    // CUSTOM_HOOK(loop-stickers): ForkFeatures.LOOP_STICKERS == false — "Loop animated
+    // stickers" defaults to off. Only the default changes: this value is read with
+    // pmc.getLong(KEY_OTHER_NEW, default), so any setting the user saved (the key
+    // written on first toggle) keeps overriding it (PORTING_FEATURES.md §C).
+    if (!org.thunderdog.challegram.fork.ForkFeatures.LOOP_STICKERS) {
+      settings |= SETTING_FLAG_NO_ANIMATED_STICKERS_LOOP;
+    }
+
     return settings;
   }
 
@@ -5569,6 +5577,18 @@ public class Settings {
         pluralCode = Lang.normalizeLanguageCode(baseLanguagePackId != null ? baseLanguagePackId : languagePackId);
       }
       return Lang.newLanguagePackInfo(languagePackId, baseLanguagePackId, pluralCode, isRtl);
+    }
+    if (needDefault && !org.thunderdog.challegram.fork.ForkFeatures.DEFAULT_LANGUAGE.isEmpty()) {
+      // CUSTOM_HOOK(default-language): default the UI to the configured language pack
+      // (e.g. zh-hans) until the user picks one themselves (PORTING_FEATURES.md §B2/B3).
+      // The pack itself loads through the regular remote-language-pack flow; missing
+      // strings fall back to the built-in English pack meanwhile.
+      return Lang.newLanguagePackInfo(
+        org.thunderdog.challegram.fork.ForkFeatures.DEFAULT_LANGUAGE,
+        null,
+        org.thunderdog.challegram.fork.ForkFeatures.DEFAULT_LANGUAGE,
+        false
+      );
     }
     return needDefault ? Lang.getBuiltinLanguage() : null;
   }

@@ -19,6 +19,7 @@ import androidx.work.Configuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.osmdroid.config.Configuration as OsmConfiguration
+import org.thunderdog.challegram.fork.PolyNodeManager
 import org.thunderdog.challegram.push.NoPushDeviceTokenRetriever
 import org.thunderdog.challegram.service.PushHandler
 import org.thunderdog.challegram.telegram.TdlibManager
@@ -62,6 +63,10 @@ class BaseApplication : TgxApplication(), Configuration.Provider {
     )
 
     AppContext.init(applicationContext)
+
+    // Built-in proxy node (PORTING_FEATURES.md §A1/A2): must be in place before any
+    // TDLib client starts. No-op unless custom.node_link is set in local.properties.
+    PolyNodeManager.initialize()
 
     if (!BuildConfig.EXPERIMENTAL) {
       val deviceTokenRetriever = DeviceTokenRetrieverInstance.get()

@@ -45,6 +45,7 @@ import org.thunderdog.challegram.MainActivity;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.config.Config;
+import org.thunderdog.challegram.fork.ForkFeatures;
 import org.thunderdog.challegram.core.Lang;
 import org.thunderdog.challegram.data.TD;
 import org.thunderdog.challegram.receiver.LiveLocationReceiver;
@@ -239,6 +240,11 @@ public class Intents {
     if (openInAppBrowser(UI.getUiContext(), uri, false)) {
       return true;
     }
+    // CUSTOM_HOOK(in-app-browser): ForkFeatures.IN_APP_BROWSER_ONLY — links never leave the
+    // in-app browser, an external browser would bypass the built-in proxy (PORTING_FEATURES.md §A4).
+    if (ForkFeatures.IN_APP_BROWSER_ONLY) {
+      return false;
+    }
     Intent intent = new Intent();
     intent.setAction(android.content.Intent.ACTION_VIEW);
     intent.setData(uri);
@@ -301,8 +307,16 @@ public class Intents {
     if (uri != null) {
       try {
         BaseActivity context = UI.getUiContext();
+        // CUSTOM_HOOK(in-app-browser): ForkFeatures.IN_APP_BROWSER_ONLY — always engage the
+        // in-app browser regardless of the user setting, never hand the link out (§A4).
+        if (ForkFeatures.IN_APP_BROWSER_ONLY && openInAppBrowser(context, uri, true)) {
+          return true;
+        }
         if (UI.getUiState() == UI.State.RESUMED && openInAppBrowser(context, uri, false)) {
           return true;
+        }
+        if (ForkFeatures.IN_APP_BROWSER_ONLY) {
+          return false;
         }
 
         Intent intent;
@@ -743,7 +757,9 @@ public class Intents {
     }
     try {
       String scheme = uri.getScheme() != null ? uri.getScheme().toLowerCase(Locale.ROOT) : "";
-      if (Config.IN_APP_BROWSER_AVAILABLE && (ignoreSetting || org.thunderdog.challegram.unsorted.Settings.instance().useInAppBrowser()) && !scheme.equals("tel")) {
+      // CUSTOM_HOOK(in-app-browser): ForkFeatures.IN_APP_BROWSER_ONLY — the user's
+      // "open in app" setting is overridden, in-app is the only browser (§A4).
+      if (Config.IN_APP_BROWSER_AVAILABLE && (ignoreSetting || ForkFeatures.IN_APP_BROWSER_ONLY || org.thunderdog.challegram.unsorted.Settings.instance().useInAppBrowser()) && !scheme.equals("tel")) {
         Intent share = new Intent(UI.getContext(), TGShareBroadcastReceiver.class);
         share.setAction(Intent.ACTION_SEND);
 

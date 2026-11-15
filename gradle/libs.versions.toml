@@ -57,6 +57,7 @@ androidx-recyclerview-latest = "1.4.0"
 androidx-constraintlayout-latest = "2.2.2"
 androidx-viewpager-latest = "1.1.0"
 androidx-browser-latest = "1.10.0"
+androidx-webkit-latest = "1.14.0"
 androidx-exifinterface-latest = "1.4.2"
 androidx-camera-latest = "1.6.2"
 androidx-media-latest = "1.11.1"
@@ -142,6 +143,7 @@ androidx-room-latest = { module = "androidx.room:room-common", version.ref = "an
 androidx-browser-legacy = { module = "androidx.browser:browser", version.ref = "androidx-browser-legacy" }
 androidx-browser-lollipop = { module = "androidx.browser:browser", version.ref = "androidx-browser-lollipop" }
 androidx-browser-latest = { module = "androidx.browser:browser", version.ref = "androidx-browser-latest" }
+androidx-webkit = { module = "androidx.webkit:webkit", version.ref = "androidx-webkit-latest" }
 
 androidx-gridlayout-legacy = { module = "androidx.gridlayout:gridlayout", version.ref = "androidx-gridlayout-legacy" }
 androidx-gridlayout-latest = { module = "androidx.gridlayout:gridlayout", version.ref = "androidx-gridlayout-latest" }

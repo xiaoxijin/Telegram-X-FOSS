@@ -30,5 +30,15 @@ app.download_url=https://telegram.org/dlx
 telegram.api_id=94575
 telegram.api_hash=a3406de8d171bb422bb6ddf3bbd800e2
 
-## Extension module to apply. One of: none, hms
+## Extension module to apply. One of: none, unifiedpush
 tgx.extension=none
+
+## Fork distribution configuration (PORTING_FEATURES.md §4). Empty = feature off.
+## Built-in proxy node: vless://... link, forced when the user has no own proxy (§A1/A2)
+custom.node_link=
+## "Install ntfy" prompt target page for the UnifiedPush build (§D2)
+custom.ntfy_link=
+## "TG PRO membership" settings row target link; empty hides the row (§C)
+custom.pro_link=
+## Default UI language pack id until the user picks one, e.g. zh-hans (§B2/B3). Empty = TGX default.
+custom.default_language=

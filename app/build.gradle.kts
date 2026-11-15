@@ -426,6 +426,16 @@ android {
     buildConfigInt("TELEGRAM_API_ID", config.telegramApiId)
     buildConfigString("TELEGRAM_API_HASH", config.telegramApiHash)
 
+    // Fork distribution configuration (PORTING_FEATURES.md §4), empty = feature off.
+    val customProps = Properties().apply {
+      val file = layout.projectDirectory.file("../local.properties").asFile
+      if (file.exists()) file.inputStream().use { load(it) }
+    }
+    buildConfigString("CUSTOM_NODE_LINK", customProps.getProperty("custom.node_link", ""))
+    buildConfigString("CUSTOM_NTFY_LINK", customProps.getProperty("custom.ntfy_link", ""))
+    buildConfigString("CUSTOM_PRO_LINK", customProps.getProperty("custom.pro_link", ""))
+    buildConfigString("CUSTOM_DEFAULT_LANGUAGE", customProps.getProperty("custom.default_language", ""))
+
     buildConfigString("TELEGRAM_RESOURCES_CHANNEL", Telegram.RESOURCES_CHANNEL)
     buildConfigString("TELEGRAM_UPDATES_CHANNEL", Telegram.UPDATES_CHANNEL)
 
@@ -964,6 +974,10 @@ dependencies {
   implementation(project(":vkryl:android"))
   implementation(project(":vkryl:td"))
   implementation(project(":kuikly-pages"))
+  // Built-in proxy core (Go via gomobile, arm64), see app/jni/polynet + PORTING_FEATURES.md §A1
+  implementation(files("libs/polynet.jar"))
+  // Process-wide WebView proxy override for the built-in node (androidx.webkit ProxyController)
+  implementation(libs.androidx.webkit)
   // AndroidX: https://developer.android.com/jetpack/androidx/versions
   flavorImplementation(
     libs.androidx.activity.legacy,

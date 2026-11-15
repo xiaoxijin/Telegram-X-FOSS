@@ -5,6 +5,7 @@ import com.tencent.kuikly.core.manager.BridgeManager
 import com.tencent.kuikly.core.nvi.NativeBridge
 import org.thunderdog.challegram.kuikly.pages.KuiklyAboutPage
 import org.thunderdog.challegram.kuikly.pages.KuiklyHomePage
+import org.thunderdog.challegram.kuikly.pages.KuiklyProPage
 
 /**
  * Hand-maintained equivalent of the file Kuikly's KSP processor
@@ -59,5 +60,6 @@ class KuiklyCoreEntry : IKuiklyCoreEntry {
   override fun triggerRegisterPages() {
     BridgeManager.registerPageRouter("kuikly_home") { KuiklyHomePage() }
     BridgeManager.registerPageRouter("kuikly_about") { KuiklyAboutPage() }
+    BridgeManager.registerPageRouter("kuikly_pro") { KuiklyProPage() }
   }
 }

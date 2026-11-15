@@ -650,6 +650,12 @@ public class SettingsController extends ViewController<Void> implements
       items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_chatFolders, R.drawable.baseline_folder_copy_24, R.string.ChatFolders));
       items.add(new ListItem(ListItem.TYPE_SEPARATOR));
     }
+    // CUSTOM_HOOK(hide-premium): self-hosted "TG PRO membership" row (PORTING_FEATURES.md §C2);
+    // hidden entirely when custom.pro_link is empty.
+    if (!BuildConfig.CUSTOM_PRO_LINK.isEmpty()) {
+      items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_kuiklyPro, R.drawable.baseline_star_24, R.string.KuiklyProMembership));
+      items.add(new ListItem(ListItem.TYPE_SEPARATOR));
+    }
     items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_kuiklyDemo, R.drawable.baseline_layers_24, R.string.KuiklyUIDemo));
     items.add(new ListItem(ListItem.TYPE_SEPARATOR));
     items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_languageSettings, R.drawable.baseline_language_24, R.string.Language));
@@ -1165,6 +1171,11 @@ public class SettingsController extends ViewController<Void> implements
       });
     } else if (viewId == R.id.btn_kuiklyDemo) {
       KuiklyActivity.start(context);
+    } else if (viewId == R.id.btn_kuiklyPro) {
+      com.tencent.kuikly.core.nvi.serialization.json.JSONObject proData =
+        new com.tencent.kuikly.core.nvi.serialization.json.JSONObject();
+      proData.put("pro_link", BuildConfig.CUSTOM_PRO_LINK);
+      org.thunderdog.challegram.kuikly.KuiklyActivity.start(context, "kuikly_pro", proData);
     } else if (viewId == R.id.btn_languageSettings) {
       navigateTo(new SettingsLanguageController(context, tdlib));
     } else if (viewId == R.id.btn_notificationSettings) {
