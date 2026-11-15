@@ -87,3 +87,25 @@
 # OSMDroid: https://github.com/osmdroid/osmdroid
 -keep class org.osmdroid.** { *; }
 -dontwarn org.osmdroid.**
+# CUSTOM_HOOK(kuikly): KuiklyUI — the render layer reaches the core and pages through
+# NativeBridge calls and reflection, so the core, the hand-maintained page registry and
+# the pages/modules themselves must all survive R8 (PORTING_FEATURES.md KuiklyUI upgrade).
+-keep class com.tencent.kuikly.core.** { *; }
+-keep class org.thunderdog.challegram.kuikly.** { *; }
+-keep class org.thunderdog.challegram.kuikly.pages.** { *; }
+-keep class com.tencent.kuikly.core.android.KuiklyCoreEntry { *; }
+-keep class com.tencent.kuikly.core.IKuiklyCoreEntry { *; }
+-keep class com.tencent.kuikly.core.IKuiklyCoreEntry$Delegate { *; }
+-keep class com.tencent.kuikly.core.log.KLog { *; }
+-keepnames class com.tencent.kuikly.core.render.android.scheduler.IKuiklyRenderCoreScheduler$* {
+  public *;
+}
+-keep class com.tencent.kuikly.core.render.android.scheduler.KuiklyRenderCoreContextScheduler {
+  com.tencent.kuikly.core.render.android.scheduler.KuiklyRenderCoreContextScheduler INSTANCE;
+  void scheduleTask(long,java.lang.Runnable);
+}
+-keepclassmembers class androidx.recyclerview.widget.RecyclerView {
+  void setScrollState(int);
+}
+-dontwarn org.telegram.polynet.**
+-dontwarn go.**
