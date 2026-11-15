@@ -46,6 +46,8 @@ import android.telephony.TelephonyManager;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.RemoteViews;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
@@ -938,6 +940,8 @@ public class TGCallService extends Service implements
         builder.setSubText(shortName);
       }
     }
+    PendingIntent answerPendingIntent = null;
+    PendingIntent declinePendingIntent = null;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
       Intent endIntent = new Intent();
       Intents.secureIntent(endIntent, false);
@@ -947,7 +951,8 @@ public class TGCallService extends Service implements
         endTitle = new SpannableString(endTitle);
         ((SpannableString) endTitle).setSpan(new ForegroundColorSpan(Theme.getColor(ColorId.circleButtonNegative)), 0, endTitle.length(), 0);
       }
-      builder.addAction(R.drawable.round_call_end_24_white, endTitle, PendingIntent.getBroadcast(this, 0, endIntent, PendingIntent.FLAG_ONE_SHOT | Intents.mutabilityFlags(false)));
+      declinePendingIntent = PendingIntent.getBroadcast(this, 0, endIntent, PendingIntent.FLAG_ONE_SHOT | Intents.mutabilityFlags(false));
+      builder.addAction(R.drawable.round_call_end_24_white, endTitle, declinePendingIntent);
       Intent answerIntent = new Intent();
       Intents.secureIntent(answerIntent, false);
       answerIntent.setAction(Intents.ACTION_ANSWER_CALL);
@@ -956,13 +961,12 @@ public class TGCallService extends Service implements
         answerTitle = new SpannableString(answerTitle);
         ((SpannableString) answerTitle).setSpan(new ForegroundColorSpan(Theme.getColor(ColorId.circleButtonPositive)), 0, answerTitle.length(), 0);
       }
-      PendingIntent answerAction;
       if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-        answerAction = PendingIntent.getActivity(UI.getContext(), 0, Intents.valueOfCall(), PendingIntent.FLAG_ONE_SHOT | Intents.mutabilityFlags(false));
+        answerPendingIntent = PendingIntent.getActivity(UI.getContext(), 0, Intents.valueOfCall(), PendingIntent.FLAG_ONE_SHOT | Intents.mutabilityFlags(false));
       } else {
-        answerAction = PendingIntent.getBroadcast(this, 0, answerIntent, PendingIntent.FLAG_ONE_SHOT | Intents.mutabilityFlags(false));
+        answerPendingIntent = PendingIntent.getBroadcast(this, 0, answerIntent, PendingIntent.FLAG_ONE_SHOT | Intents.mutabilityFlags(false));
       }
-      builder.addAction(R.drawable.round_call_24_white, answerTitle, answerAction);
+      builder.addAction(R.drawable.round_call_24_white, answerTitle, answerPendingIntent);
       builder.setPriority(Notification.PRIORITY_MAX);
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -992,6 +996,25 @@ public class TGCallService extends Service implements
       tdlib.cache().userAccentColor(user), TD.getLetters(user), false, true) : null;
     if (bitmap != null) {
       builder.setLargeIcon(bitmap);
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+      // CUSTOM_HOOK(call-notification): a compact custom view keeps the answer / decline
+      // buttons visible in the collapsed and heads-up states on HyperOS/MIUI, where the
+      // platform may otherwise collapse the standard actions away (PORTING_FEATURES.md §E4,
+      // port of commit 5de48b908).
+      RemoteViews compactView = new RemoteViews(getPackageName(), R.layout.call_notification_compact);
+      compactView.setTextViewText(R.id.name, TD.getUserName(user));
+      compactView.setTextViewText(R.id.title, Lang.getString(R.string.CallBrandingIncoming));
+      if (bitmap != null) {
+        compactView.setImageViewBitmap(R.id.photo, bitmap);
+      }
+      compactView.setOnClickPendingIntent(R.id.answer_btn, answerPendingIntent);
+      compactView.setOnClickPendingIntent(R.id.decline_btn, declinePendingIntent);      compactView.setContentDescription(R.id.answer_btn, Lang.getString(R.string.AnswerCall));
+      compactView.setContentDescription(R.id.decline_btn, Lang.getString(R.string.DeclineCall));
+      compactView.setInt(R.id.compact_root, "setLayoutDirection", Lang.isRtl ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
+      builder.setCustomContentView(compactView);
+      builder.setCustomHeadsUpContentView(compactView);
+      builder.setCustomBigContentView(compactView);
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
       incomingNotification = builder.build();

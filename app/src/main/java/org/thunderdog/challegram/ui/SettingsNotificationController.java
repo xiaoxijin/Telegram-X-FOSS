@@ -20,9 +20,11 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
+import android.Manifest;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -578,6 +580,75 @@ public class SettingsNotificationController extends RecyclerViewController<Setti
     return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && customChatId == 0 && scope == null && tdlib.notifications().areNotificationsBlockedGlobally();
   }
 
+  // CUSTOM_HOOK(call-notification): PORTING_FEATURES.md §E4 (port of commit 4f863f3a0).
+  // android.provider.Settings is FQN'd: org.thunderdog.challegram.unsorted.Settings is in scope.
+
+  private boolean hasCallPermissions () {
+    Activity activity = context;
+    if (activity == null) {
+      return false;
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && (activity.checkSelfPermission(android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED || activity.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)) {
+      return false;
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && activity.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+      return false;
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      NotificationManager manager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+      if (manager != null && !manager.canUseFullScreenIntent()) {
+        return false;
+      }
+    }
+    return !org.thunderdog.challegram.kuikly.XiaomiUtilities.isMIUI(activity) ||
+      org.thunderdog.challegram.kuikly.XiaomiUtilities.isCustomPermissionGranted(activity, org.thunderdog.challegram.kuikly.XiaomiUtilities.OP_SHOW_WHEN_LOCKED);
+  }
+
+  private void openCallPermissions () {
+    Activity activity = context;
+    if (activity == null) {
+      return;
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      ArrayList<String> permissions = new ArrayList<>();
+      if (activity.checkSelfPermission(android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        permissions.add(android.Manifest.permission.CAMERA);
+      }
+      if (activity.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+        permissions.add(android.Manifest.permission.RECORD_AUDIO);
+      }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && activity.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        permissions.add(android.Manifest.permission.POST_NOTIFICATIONS);
+      }
+      if (!permissions.isEmpty()) {
+        activity.requestPermissions(permissions.toArray(new String[0]), REQUEST_CALL_PERMISSIONS);
+        return;
+      }
+    }
+
+    Intent intent = null;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      NotificationManager manager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+      if (manager != null && !manager.canUseFullScreenIntent()) {
+        intent = new Intent(android.provider.Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:" + activity.getPackageName()));
+      }
+    }
+    if (intent == null && org.thunderdog.challegram.kuikly.XiaomiUtilities.isMIUI(activity) && !org.thunderdog.challegram.kuikly.XiaomiUtilities.isCustomPermissionGranted(activity, org.thunderdog.challegram.kuikly.XiaomiUtilities.OP_SHOW_WHEN_LOCKED)) {
+      intent = org.thunderdog.challegram.kuikly.XiaomiUtilities.getPermissionManagerIntent(activity);
+    }
+    if (intent == null) {
+      intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + activity.getPackageName()));
+    }
+    try {
+      activity.startActivity(intent);
+    } catch (Throwable t) {
+      Log.e(t);
+    }
+  }
+
+  /** requestCode for the missing runtime permissions requested by {@link #openCallPermissions()}. */
+  private static final int REQUEST_CALL_PERMISSIONS = 4061;
+
   private static ArrayList<RingtoneItem> getRingtones (Context context, int type, @Nullable String customDefaultRingtoneUri) {
     ArrayList<RingtoneItem> ringtoneItems = new ArrayList<>();
     Uri defaultRingtoneUri = RingtoneManager.getActualDefaultRingtoneUri(context, type);
@@ -882,6 +953,11 @@ public class SettingsNotificationController extends RecyclerViewController<Setti
             break;*/
         } else if (itemId == R.id.btn_appBadgeCountMessages || itemId == R.id.btn_appBadgeCountMuted || itemId == R.id.btn_appBadgeCountArchive) {
           view.getToggler().setRadioEnabled((Settings.instance().getBadgeFlags() & item.getIntValue()) != 0, isUpdate);
+        } else if (itemId == R.id.btn_callPermissions) {
+          // CUSTOM_HOOK(call-notification): persistent call-permission row (§E4)
+          boolean granted = hasCallPermissions();
+          view.setData(Lang.getString(granted ? R.string.CallPermissionsGranted : R.string.CallPermissionsRequired));
+          view.setDataColorId(granted ? 0 : ColorId.textNegative);
         } else if (itemId == R.id.btn_customChat_preview) {
           view.getToggler().setRadioEnabled(tdlib.notifications().isShowPreviewEnabled(customChatId, false), isUpdate);
           if (!ChatId.isSecret(customChatId)) {
@@ -1264,6 +1340,10 @@ public class SettingsNotificationController extends RecyclerViewController<Setti
         items.add(new ListItem(ListItem.TYPE_VALUED_SETTING_COMPACT, R.id.btn_calls_vibrate, 0, R.string.Vibrate));
         items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
         items.add(new ListItem(ListItem.TYPE_VALUED_SETTING_COMPACT, R.id.btn_calls_ringtone, 0, R.string.Ringtone));
+        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+        // CUSTOM_HOOK(call-notification): persistent call-permission entry point
+        // (PORTING_FEATURES.md §E4, port of commit 4f863f3a0)
+        items.add(new ListItem(ListItem.TYPE_VALUED_SETTING_COMPACT, R.id.btn_callPermissions, 0, R.string.CallPermissions));
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
       }
 
@@ -1461,6 +1541,9 @@ public class SettingsNotificationController extends RecyclerViewController<Setti
       tdlib.notifications().toggleDefaultShowPreview(scope);
       adapter.updateValuedSetting(item);
       checkContentPreview(tdlib.notifications().defaultShowPreview(scope), R.id.btn_notifications_preview, R.id.btn_notifications_contentPreview);
+    } else if (viewId == R.id.btn_callPermissions) {
+      // CUSTOM_HOOK(call-notification): §E4 — step through the call-permission surface
+      openCallPermissions();
     } else if (viewId == R.id.btn_notifications_contentPreview) {
       TdApi.NotificationSettingsScope scope = getScope(item);
       tdlib.notifications().toggleContentPreview(scope);

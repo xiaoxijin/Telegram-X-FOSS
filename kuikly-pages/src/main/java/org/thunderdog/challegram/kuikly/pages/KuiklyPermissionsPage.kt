@@ -76,11 +76,13 @@ internal class KuiklyPermissionsPage : Pager() {
     }
 
     rows.clear()
-    rows.add(Row(ID_NOTIFICATIONS, "通知"))
+    // §E4 (commit 27bf780ba): background call permissions come first on MIUI/HyperOS —
+    // autostart and unrestricted battery are what keeps calls and pushes alive
     if (isMiui) {
       rows.add(Row(ID_AUTO_START, "自启动"))
+      rows.add(Row(ID_BATTERY, "电池不限"))
     }
-    rows.add(Row(ID_BATTERY, "电池不限"))
+    rows.add(Row(ID_NOTIFICATIONS, "通知"))
     if (isMiui) {
       rows.add(Row(ID_LOCK_SCREEN, "锁屏显示"))
       rows.add(Row(ID_BACKGROUND_POPUP, "后台弹出"))

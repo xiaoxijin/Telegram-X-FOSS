@@ -1607,6 +1607,10 @@
   <string name="ForkPermBackgroundPopup">Display pop-up windows while running in the background</string>
   <string name="ForkPermOverlay">Display over other apps</string>
   <string name="ForkPermFullScreen">Full-screen notifications</string>
+  <!-- CUSTOM_HOOK(call-notification): persistent call-permission row (§E4, commit 4f863f3a0) -->
+  <string name="CallPermissions">Call permissions</string>
+  <string name="CallPermissionsGranted">All required permissions granted</string>
+  <string name="CallPermissionsRequired">Setup required</string>
   <string name="ThemeClassic">Classic</string>
   <string name="ThemeBlue">Blue</string>
   <string name="ThemeNight">Night Black</string>

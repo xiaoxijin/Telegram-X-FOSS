@@ -816,6 +816,13 @@
   <item type="id" name="btn_sourceCodeChanges" />
   <item type="id" name="btn_kuiklyDemo" />
   <item type="id" name="btn_kuiklyPro" />
+  <item type="id" name="btn_callPermissions" />
+  <!-- CUSTOM_HOOK(call-notification): compact incoming-call view (§E4) -->
+  <item type="id" name="compact_root" />
+  <item type="id" name="photo" />
+  <item type="id" name="buttons" />
+  <item type="id" name="decline_btn" />
+  <item type="id" name="answer_btn" />
   <item type="id" name="btn_copyDebug" />
   <item type="id" name="btn_pasteText" />
   <item type="id" name="btn_pasteUrl" />

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CUSTOM_HOOK(call-notification): compact incoming-call view (PORTING_FEATURES.md §E4) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+  <solid android:color="#282e31" />
+  <corners android:radius="8dp" />
+</shape>
