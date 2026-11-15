@@ -36,7 +36,8 @@ abstract class AppConfigurationSource : ValueSource<ApplicationConfig, AppConfig
     val isExampleBuild = false
     val isExperimentalBuild = false
     val applicationExtension = getOrDefault(properties, "tgx.extension", defaults).also {
-      require(it == "none")
+      // PORTING_FEATURES.md §D1: extension/unifiedpush is a push-channel variant
+      require(it == "none" || it == "unifiedpush")
     }
 
     val sdkDir = properties.getOrThrow("sdk.dir").also {

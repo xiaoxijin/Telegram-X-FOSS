@@ -5,6 +5,7 @@ import android.content.Intent
 import org.unifiedpush.android.connector.UnifiedPush
 import org.thunderdog.challegram.fork.UnifiedPushEndpointStore
 import tgx.bridge.DeviceTokenRetriever
+import tgx.bridge.Extension
 import tgx.bridge.TokenRetrieverListener
 
 /**
@@ -33,9 +34,9 @@ object TelegramXExtension : Extension("unifiedpush") {
       return ntfy
     }
     // fall back to whatever distributor is set as default, if any
-    val distributor = UnifiedPush.getDistributors(context).firstOrNull()
-      ?: UnifiedPush.getDefaultDistributor(context)
-    return distributor?.let { context.packageManager.getLaunchIntentForPackage(it) }
+    return UnifiedPush.getDistributors(context).firstOrNull()?.let {
+      context.packageManager.getLaunchIntentForPackage(it)
+    }
   }
 }
 

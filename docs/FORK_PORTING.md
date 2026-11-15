@@ -1,0 +1,52 @@
+# Fork feature porting status (PORTING_FEATURES.md)
+
+Status of the port described in `PORTING_FEATURES.md` (source: `D:\code\Telegram`,
+branch `feature/telegram-customizations`). Everything below compiles; items marked
+**device-verify** need on-device acceptance runs (see the acceptance table in
+PORTING_FEATURES.md).
+
+| Spec item | Status | Where |
+|---|---|---|
+| A1 polynet core | ✅ ported (Go tests green, prebuilt jar + arm64 libgojni.so) | `app/jni/polynet/`, `app/libs/polynet.jar`, `org.thunderdog.challegram.fork.PolyNodeTransport`, `scripts/build-polynet.sh` |
+| A2 forced default node | ✅ ported (yields to user proxies) | `fork.PolyNodeManager` (wired in `BaseApplication.onCreate`) |
+| A6 ping reuses main instance | ✅ parity (`startCheck`; TGX pings via TDLib testProxy against the local SOCKS5) | `fork.PolyNodeTransport` |
+| A3 WebView over node | ✅ ported (fixed relay port, startup hold, idle-time apply; process-wide via androidx.webkit) | `fork.WebViewNodeProxy` |
+| A4 IN_APP_BROWSER_ONLY | ✅ gate active in `Intents` (three exit points) | `fork.ForkFeatures` |
+| A5 call UDP relay | ✅ code ported (webrtc patch + socket server wrap + UDP relay wiring) — **device-verify** | `webrtc-patches/`, `scripts/private/patch-webrtc-impl.sh`, `app/jni/tgvoip/fork/call_proxy_socket_server.cc`, `fork.CallProxy`, `PolyNodeTransport.startCallRelay` |
+| B1 standalone release form | ✅ N/A (TGX is already standalone; update check reports via its own channel) | — |
+| B2/B3 default language | ✅ `custom.default_language` (e.g. `zh-hans`) first-start default; strings come over the regular remote-pack flow — **device-verify zh pack presence** | `Settings.readLanguage`, `local.properties.sample` |
+| B4 zh permission strings | ✅ fork prompt strings are English built-in; zh rides the language-pack flow (E-group page copy is Chinese by design) | `strings.xml` |
+| C PASSPORT | ✅ N/A (no Passport UI in TGX) | `fork.ForkFeatures` |
+| C HIDE_PREMIUM | ✅ TGX has no promo rows (Play Billing removed upstream); "TG PRO membership" row added (hidden when `custom.pro_link` empty), opens Kuikly page `kuikly_pro`; functional premium alerts kept | `SettingsController`, `kuikly-pages .../KuiklyProPage.kt` |
+| C LOOP_STICKERS | ✅ default off; user-saved values kept | `Settings.makeDefaultNewSettings` |
+| D1 UnifiedPush | ✅ `extension/unifiedpush` variant (`tgx.extension=unifiedpush`); SimplePush (token_type 4) registration; empty-ping wake in `PushProcessor` — **device-verify** | `extension/unifiedpush/`, `service.PushProcessor` |
+| D2 distributor guidance | ✅ install/open prompts once per process, dismissible; custom.ntfy_link with releases fallback | `fork.ForkPrompts`, `tgx.bridge.Extension` hooks |
+| E1 permission page | ✅ KuiklyUI page + native module; MIUI routing table ported | `kuikly-pages .../KuiklyPermissionsPage.kt`, `kuikly.SystemPermissionsHelper`, `kuikly.XiaomiUtilities` |
+| E2 step-by-step guide | ✅ one step at a time, auto re-check on return | same page |
+| E3 startup prompt | ✅ shared one-shot scheduler in MainActivity.onResume | `fork.ForkPrompts` |
+| E4 call reliability | ✅ permission surface + HyperOS reset notice; deeper call-stack changes (always-on call buttons etc.) not ported — measure on device first | — |
+| E5 strings | ✅ en built-in; zh via language pack | — |
+| F1 RemoteGreeting | ✅ ported on TDLib (stranger check, confirmed send, own-side cleanup, non-retryable receipts); off unless `files/remote-greeting.json` — **device-verify** | `fork.RemoteGreeting*`, `BaseApplication` |
+| G profileable | ✅ manifest `<profileable>` | `AndroidManifest.xml` |
+
+## Building the proxy core locally
+
+```bash
+scripts/build-polynet.sh   # go test + gomobile bind -> app/libs/polynet.jar + jniLibs/arm64-v8a/libgojni.so
+```
+
+The committed `libgojni.so`/`polynet.jar` come from the source fork at HEAD 53694c9f1;
+rerun the script after upgrading the Go core.
+
+## Distribution switches (`local.properties`)
+
+`custom.node_link`, `custom.ntfy_link`, `custom.pro_link`, `custom.default_language`
+(see `local.properties.sample`). Push variant: `tgx.extension=unifiedpush`.
+
+## Known deltas vs the source fork
+
+- Telegram-Android's full bundled zh_hans pack is not transplantable (different
+  strings system); TGX uses its remote language packs instead.
+- E4's call-stack fixes beyond the permission surface are not ported.
+- The webrtc patch must be re-applied after every webrtc submodule update
+  (`scripts/setup.sh` does it automatically).

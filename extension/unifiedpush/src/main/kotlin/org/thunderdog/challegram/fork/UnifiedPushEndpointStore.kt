@@ -5,7 +5,7 @@ import org.drinkless.tdlib.TdApi
 /**
  * Last endpoint received from the UnifiedPush distributor in this process, so token
  * fetches between registrations resolve without another distributor round-trip.
- * Guarded by the class monitor; written by [UnifiedPushService].
+ * Written by [UnifiedPushService].
  */
 object UnifiedPushEndpointStore {
   @Volatile

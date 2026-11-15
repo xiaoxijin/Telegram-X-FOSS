@@ -6,6 +6,8 @@ plugins {
 
 dependencies {
   api(project(":extension:bridge"))
+  // DeviceToken types (TdApi.DeviceTokenSimplePush) live in the tdlib module
+  implementation(project(":tdlib"))
   // UnifiedPush connector (a distributor such as ntfy delivers wake-only pings,
   // PORTING_FEATURES.md §D1). Its JVM 'tink' duplicates tink-android, so exclude it.
   implementation("org.unifiedpush.android:connector:3.3.5") {
