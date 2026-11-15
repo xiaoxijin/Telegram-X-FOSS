@@ -107,6 +107,10 @@
 -keepclassmembers class androidx.recyclerview.widget.RecyclerView {
   void setScrollState(int);
 }
+# gomobile: the Go runtime resolves go.Seq / go.Universe methods via JNI by NAME,
+# so they must not be renamed or stripped by R8.
+-keep class go.** { *; }
+-keep class org.telegram.polynet.** { *; }
 -dontwarn org.telegram.polynet.**
 -dontwarn go.**
 
